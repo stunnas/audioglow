@@ -11,10 +11,7 @@ export default function NavBar() {
                     <span className="ml-2 text-xl font-semibold">Audio Glow</span>
                 </Link>
                 <div className="flex items-center space-x-4">
-                    <Link className="text-md font-medium transition-colors hover:underline" href="#">
-                        Documentation
-                    </Link>
-                    <Link className="text-md font-medium transition-colors hover:underline" href="#">
+                    <Link className="text-md font-medium transition-colors hover:underline" href="https://www.github.com/stunnas/audioglow" target="_blank">
                         Source Code
                     </Link>
                 </div>
