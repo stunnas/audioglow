@@ -569,7 +569,7 @@ export default function Home() {
                   <SheetHeader>
                     <SheetTitle>Select Music</SheetTitle>
                     <SheetDescription>
-                      Click on any songs you've added to play them.
+                      Click on any songs you&apos;ve added to play them.
                     </SheetDescription>
                   </SheetHeader>
                   {songs.length > 0 ? (
