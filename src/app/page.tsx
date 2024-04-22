@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { throttle } from "lodash";
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -129,7 +130,7 @@ export default function Home() {
       setCurrentSong(queue[0]);
       setIsPlaying(true);
     }
-  }, [queue]);
+  }, [queue, currentSong]);
 
   
   const formatTime = (time: number) => {
@@ -420,7 +421,7 @@ export default function Home() {
                 <p className="text-sm text-gray-500">Visualizer Type</p>
               </div>
               {/* Visualizer Mode Options */}
-              {visualizerType.type === "Line Waves" && (
+              {/* {visualizerType.type === "Line Waves" && (
                 <div className="flex flex-col justify-center items-center space-y-2">
                   <Select name="visualizerModeSelect" onValueChange={onVisualizerModeChange} defaultValue={"Image"}>
                     <SelectTrigger className="min-w-max">
@@ -436,7 +437,7 @@ export default function Home() {
                   </Select>
                   <p className="text-sm text-gray-500">Visualizer Mode</p>
                 </div>
-              )}
+              )} */}
               
             </div>
             
@@ -454,7 +455,7 @@ export default function Home() {
                 {/* Toast content */}
 
                 {/* Image */}
-                <img src={currentSong?.img || "/default.webp"} alt={currentSong?.name} className="w-24 h-24 rounded-full shadow" />
+                <Image src={currentSong?.img || "/default.webp"} alt={currentSong?.name || ""} width={25} height={25} className="size-24 rounded-full shadow" />
                 {/* Info */}
                 <div>
                   <h3 className="text-lg font-bold">{currentSong ? currentSong.name : defaultSongName}</h3>
@@ -581,7 +582,7 @@ export default function Home() {
                           <p className="text-sm text-stone-500">{formatTime(song.duration)}</p>
                         </div>
                         
-                        <img src={song.img} alt="album cover" className="size-24 aspect-[1/1] bg-cover rounded-lg shadow-xl"/>
+                        <Image src={song.img} alt="album cover" width={25} height={25} className="size-24 aspect-[1/1] bg-cover rounded-lg shadow-xl"/>
                         <Button
                           className="absolute -bottom-4 left-0 p-1 cursor-pointer bg-white text-black border-black border-2 rounded-full hover:text-red-700 hover:border-red-700 transition-colors"
                           onClick={(e) => {
@@ -650,7 +651,7 @@ export default function Home() {
                         queue.map((item, index) => (
                           <SortableItem key={item.queueId} id={item.queueId}>
                             <div className="flex justify-between items-center gap-4 p-2 my-2 border rounded hover:bg-gray-100 transition-transform duration-300">
-                              <img src={item.img} alt="album cover" className="w-12 h-12 rounded-lg shadow"/>
+                              <Image src={item.img} alt="album cover" width={25} height={25} className="size-12 rounded-lg shadow"/>
                               <div>
                                 <p className="text-md font-medium">{item.name}</p>
                                 <p className="text-sm text-gray-500">{item.artist}</p>
