@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import AudioVisualizer from "@/components/sections/visualizer/visualizer";
 import useResizeObserver from "@/functions/resizeObserver";
-import { RepeatIcon, PlayIcon, PauseIcon, ShuffleIcon, PlusIcon, ListMusic, TrashIcon, ChevronUpIcon, StepForwardIcon, StepBackIcon, ListOrderedIcon, XIcon, ImageIcon, AudioWaveformIcon, PencilIcon } from "lucide-react";
+import { RepeatIcon, PlayIcon, PauseIcon, ShuffleIcon, PlusIcon, ListMusic, TrashIcon, ChevronUpIcon, StepForwardIcon, StepBackIcon, ListOrderedIcon, XIcon, ImageIcon, AudioWaveformIcon, PencilIcon, CheckIcon } from "lucide-react";
 
 
 
@@ -35,6 +35,8 @@ export default function Home() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const [visualizerType, setVisualizerType] = useState<Visualizer>({ type: 'Toruses' });
   const [visualizerMode, setVisualizerMode] = useState<Visualizer>({ mode: 'Image' });
+  const [editingIndex, setEditingIndex] = useState(-1);
+  const [editedName, setEditedName] = useState('');
   const [songTitle, setSongTitle] = useState('');
   const [songArtist, setSongArtist] = useState('');
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -219,6 +221,18 @@ export default function Home() {
     setIsSongToastVisible(true);
   };
 
+  const playPreviousSong = () => {
+    const currentIndex = queue.findIndex(q => q.id === currentSong?.id);
+
+    // Calculate the index of the previous song
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : queue.length - 1;
+
+    // Check if the previous song exists
+    if (currentIndex !== -1 && prevIndex !== currentIndex) {
+        setCurrentSong(queue[prevIndex]); // Play the previous song
+        setIsPlaying(true);
+    }
+  };
   const playNextSong = () => {
     if (isRepeating && audioRef.current) {
       // If repeating is enabled, restart the current song
@@ -372,6 +386,43 @@ export default function Home() {
     }
   };
 
+  const startEditing = (index: React.SetStateAction<number>, songName: React.SetStateAction<string>) => {
+    setEditingIndex(index);
+    setEditedName(songName);
+  };
+
+  const cancelEditing = () => {
+      setEditingIndex(-1);
+      setEditedName("");
+  };
+
+  const saveChanges = (index: number) => {
+      const updatedSongs = songs.map((song, idx) => {
+          if (idx === index) {
+              return { ...song, name: editedName };
+          }
+          return song;
+      });
+      setSongs(updatedSongs);
+
+      // Update Current Song
+      if (currentSong && songs[index].id === currentSong.id) {
+          setCurrentSong({ ...currentSong, name: editedName });
+      }
+
+      // Update Songs in Queue
+      const updatedQueue = queue.map(item => {
+          if (item.id === songs[index].id) {
+              return { ...item, name: editedName };
+          }
+          return item;
+      });
+      setQueue(updatedQueue);
+
+      // Reset editing state
+      cancelEditing();
+  };
+
   return (
     <>
       <NavBar/>
@@ -469,7 +520,7 @@ export default function Home() {
                 <div className="space-y-2">
                   
                   <div className="space-x-2">
-                    <Button onClick={() => {}} size="icon" variant="outline">
+                    <Button onClick={playPreviousSong} size="icon" variant="outline">
                       <StepBackIcon className="h-4 w-4" />
                     </Button>
                     <Button onClick={togglePlayPause} size="icon" variant="outline">
@@ -577,9 +628,20 @@ export default function Home() {
                     songs.map((song: Song, index: number) => (
                       <div key={index} className="w-full h-auto relative flex justify-between items-center gap-4 p-2 my-6 border rounded text-ellipsis hover:bg-gray-100 hover:scale-110 transition-transform cursor-pointer" onClick={() => selectSong(song)}>
                         <div>
-                          <p className="text-md ">{song.name}</p>
-                          <p className="text-sm text-stone-500">{song.artist}</p>
-                          <p className="text-sm text-stone-500">{formatTime(song.duration)}</p>
+                            {editingIndex === index ? (
+                                <input
+                                    type="text"
+                                    value={editedName}
+                                    onChange={(e) => setEditedName(e.target.value)}
+                                    className="text-md p-1 border-2 border-gray-300 rounded"
+                                />
+                            ) : (
+                                <>
+                                    <p className="text-md ">{song.name}</p>
+                                    <p className="text-sm text-stone-500">{song.artist}</p>
+                                    <p className="text-sm text-stone-500">{formatTime(song.duration)}</p>
+                                </>
+                            )}
                         </div>
                         
                         <Image src={song.img} alt="album cover" width={25} height={25} className="size-24 aspect-[1/1] bg-cover rounded-lg shadow-xl"/>
@@ -605,9 +667,10 @@ export default function Home() {
                           className="absolute -bottom-4 left-16 p-1 cursor-pointer bg-white text-black border-black border-2 rounded-full hover:text-red-700 hover:border-red-700 transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
+                            editingIndex === index ? saveChanges(index) : startEditing(index, song.name);
                           }}
                         >
-                          <PencilIcon className="size-6"/>
+                          {editingIndex === index ? <CheckIcon className="size-6"/> : <PencilIcon className="size-6"/>}
                         </Button>
                         
                         
@@ -636,12 +699,12 @@ export default function Home() {
                       </Button>
                       <p className="text-xs text-gray-500">Shuffle Queue</p>
                     </div>
-                    <div className="flex flex-col items-center justify-center my-8 space-y-2">
+                    {/* <div className="flex flex-col items-center justify-center my-8 space-y-2">
                       <Toggle aria-checked={isRepeating} aria-pressed={isRepeating} aria-selected={isRepeating} onPressedChange={onSongRepeatChange} variant="outline">
                           <RepeatIcon className={`h-4 w-4`} />
                       </Toggle>
                       <p className="text-xs text-gray-500">Repeat Song</p>
-                    </div>
+                    </div> */}
                     
                   </div>
                   
